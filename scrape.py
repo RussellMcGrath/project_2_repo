@@ -1,15 +1,28 @@
 #import dependencies
-
 import pandas as pd
 from bs4 import BeautifulSoup as bs
-#from bs4.element import Comment
-#from splinter import Browser
 import requests
-#import time
-#import numpy as np
+import json
+from config import api_key
 
 #datasource url 
 url = "https://inciweb.nwcg.gov/feeds/rss/incidents/"
+state_fetch_url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
+key_string = "&key=" + api_key
+
+def state_extract(obj):
+    stateval = ""
+    
+    for eachitem in obj:
+        for k, v in eachitem.items():
+            if k == "long_name":
+                stateval = v
+            elif isinstance(v, list):
+                for item in v:
+                    if item == "administrative_area_level_1":
+                        return stateval
+
+    return stateval
 
 # instanciate landing dataframe
 starting_data = pd.DataFrame()
@@ -33,6 +46,7 @@ lat = []
 lon = []
 link = []
 description = []
+state=[]
 
 #loop trough each "item" in the xml response and store the target data
 while True:    
@@ -65,7 +79,14 @@ while True:
         description.append(" ".join(child.find('description')))
     except:
         description.append(" ")
-        
+    
+    try:
+        latlng = " ".join(child.find('geo:lat')) + ","+ " ".join(child.find('geo:long'))
+        resp_data = requests.get(state_fetch_url + latlng + key_string).json()
+        state.append(state_extract(resp_data.get('results')[0].get('address_components')))
+    except:
+        state.append(" ")
+    
     try:   
         # Next sibling of child, here: 'item' 
         child = child.find_next_sibling('item')
@@ -78,12 +99,12 @@ while True:
                                     "lat":lat,
                                     "lon":lon,
                                     "link_url":link,
-                                    "description": description})
+                                    "description": description,
+                                    "state": state})
     starting_data = starting_data.append(data, ignore_index = True)
 
 # drop duplicate rows
 unique_data = starting_data.drop_duplicates(keep="first",ignore_index="True")
-unique_data.head(15)
 
 # go the the link url for each rown and extract additional data (cause, size)
 
@@ -142,4 +163,13 @@ sizes = [s.replace(",","") for s in sizes]
 unique_data["cause"] = causes
 unique_data["acres"] = sizes
 
+# see the counts of each fire cause for reference
+grouped_df = unique_data.groupby(["cause"])
+
+state_grouped_df = unique_data.groupby(["state"])
+
+# save the dataframe as "clean_data"
 clean_data = unique_data
+
+#store as csv for testing
+clean_data.to_csv("data.csv")
