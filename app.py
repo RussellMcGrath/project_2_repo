@@ -52,6 +52,10 @@ def markermap():
 def heatmap():
     return render_template("heatmap.html")
 
+@app.route("/choropleth")
+def choropleth():
+    return render_template("choropleth.html")
+
 # create endpoint that shares data in json format
 @app.route("/api/fires")
 def fires():
