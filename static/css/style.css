@@ -16,7 +16,7 @@ body {
   }
 
   html { 
-    /* background: url(../images/wildfires.jpg) no-repeat center center fixed;  */
+    background-image: url("../images/wildfires.jpg"); 
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
