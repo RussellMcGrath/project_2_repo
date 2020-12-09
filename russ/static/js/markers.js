@@ -1,93 +1,266 @@
-var myMap = L.map("map", {
-    center: [39, -110],
-    zoom: 5
-  });
+// define colored icon objects
+var greenIcon = L.icon({
+  iconUrl: 'static/images/green.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var blueIcon = L.icon({
+  iconUrl: 'static/images/blue.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var blackIcon = L.icon({
+  iconUrl: 'static/images/black.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var grayIcon = L.icon({
+  iconUrl: 'static/images/gray.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var yellowIcon = L.icon({
+  iconUrl: 'static/images/yellow.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var aquaIcon = L.icon({
+  iconUrl: 'static/images/aqua.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var redIcon = L.icon({
+  iconUrl: 'static/images/red.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
+var pinkIcon = L.icon({
+  iconUrl: 'static/images/pink.png',
+  iconSize:     [40, 40], // size of the icon
+  iconAnchor:   [20, 40], // point of the icon which will correspond to marker's location
+  popupAnchor:  [0, -50] // point from which the popup should open relative to the iconAnchor
+});
 
-var streetMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+var myMap = L.map("map", {
+  center: [39, -110],
+  zoom: 5
+  // layers: [satelliteMap,markerLayer]
+});
+
+// define map tile layers
+var satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
-    //zoomOffset: -1,
-    id: "outdoors-v11",
+    id: "satellite-streets-v11",
     accessToken: API_KEY
   }).addTo(myMap);
-
-var greenIcon = L.icon({
-    iconUrl: 'https://img.icons8.com/fluent/72/marker-storm.png',
-    //shadowUrl: 'leaf-shadow.png',
-
-    iconSize:     [48, 48], // size of the icon
-    //shadowSize:   [50, 64], // size of the shadow
-    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-    //shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+var outdoorMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+    maxZoom: 18,
+    id: "outdoors-v11",
+    accessToken: API_KEY
 });
 
+// define datasource address
+link = "/api/fires" //"static/csv/data.csv";
 
-link = "static/csv/data.csv";
+// instantiate marker arrays
+var markers = []
+var responseMarkers = [];
+var humanMarkers = [];
+var lightningMarkers = [];
+var prescribedMarkers = [];
+var unknownMarkers = [];
+var otherMarkers= [];
 
-var markers = [];
-
-d3.csv(link, response => {
+// get data from api
+d3.json(link, response => {
   console.log(response)
+  
+  createMarkerMap(response)
+  
+  buildLegend(myMap);  
+
+  createControls()
+  // add scale to map
+  L.control.scale().addTo(myMap);
+
+});
+
+function createMarkerMap(response) {
   for (i=0;i<response.length;i++) {
+    // define row data
     fire = response[i]
-    if (fire.size === "n/a") {
-      var marker = L.marker([fire.lat,fire.lon], {icon: greenIcon}).addTo(myMap)
-      marker.bindPopup(`${fire.title}<hr>${fire.cause}<br><a href="${fire.link}">Click for details</a>`)
-      //markers.push(marker)
+    if (fire.acres === "n/a") {
+      var marker = L.marker([fire.lat,fire.lon], markerStyler(fire))//.addTo(myMap);
+      marker.bindPopup(`${fire.title}<hr>${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      marker.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
+      marker.on("click", function() {myMap.setView([39,-110],5)})
+      markerSorter(fire,marker);
     } else {
-      fire.size = +fire.size      
-      var marker = L.circle([fire.lat,fire.lon], circleStyler(fire)).addTo(myMap)
-      var burnArea = L.circle([fire.lat,fire.lon], burnAreaStyler(fire)).addTo(myMap)
-      marker.bindPopup(`${fire.title}<hr>Size: ${fire.size} acres<br>Cause: ${fire.cause}<br><a href="${fire.link}">Click for details</a>`)
-      burnArea.bindPopup(`${fire.title}<hr>Size: ${fire.size} acres<br>Cause: ${fire.cause}<br><a href="${fire.link}">Click for details</a>`)
-      //marker.on("click", function(e) {myMap.panTo(e.latlng, 12)})
+      fire.acres = +fire.acres      
+      var marker = L.marker([fire.lat,fire.lon], markerStyler(fire))//.addTo(myMap)
+      var burnArea = L.circle([fire.lat,fire.lon], burnAreaStyler(fire))//.addTo(myMap)
+      marker.bindPopup(`${fire.title}<hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      burnArea.bindPopup(`${fire.title}<hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      marker.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
+      burnArea.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
+      marker.on("click", function() {myMap.setView([39,-110],5)})
+      burnArea.on("click", function() {myMap.setView([39,-110],5)})
+      markerSorter(fire,marker);
+      markerSorter(fire,burnArea);
     }
   }
-});
+}
 
-function circleStyler (fire) {
-  var circleStyle = {};
-  var circleRadius = 20000+fire.size/3;
-  var circleColor;
-  var circleFillColor;
-  if (fire.cause === "Lightning") {
-    circleColor = "blue"
-    circleFillColor = "blue"
-  } else if (fire.cause === "Unknown") {
-    circleColor = "gray"
-    circleFillColor = "gray"
+
+function createControls() {
+var markerLayer = L.layerGroup(markers);
+var responseLayer = L.layerGroup(responseMarkers);
+var humanLayer = L.layerGroup(humanMarkers);
+
+
+var baseMaps = {
+  Satellite: satelliteMap,
+  Outdoors: outdoorMap
+}
+var overlays = {
+  Fires: markerLayer
+};
+
+// create tile/overlay controls
+L.control.layers(baseMaps,overlays, {collapsed: false}).addTo(myMap);
+
+}
+
+function markerStyler (fire) {
+  var markerStyle = {};
+  var icon;
+  switch(fire.cause) {
+    case "Burned Area Emergency Response":
+      icon = pinkIcon;
+      break;
+    case "Human":
+      icon = redIcon;
+      break;
+    case "Lightning":
+      icon = yellowIcon;
+      break;
+    case "Prescribed Fire":
+      icon = greenIcon;
+      break
+    case "Unknown":
+      icon = blueIcon
+      break;
+    default:
+      icon = grayIcon
   }
-  circleStyle = {radius: circleRadius,
-                color: circleColor,
-                fillColor: circleFillColor}
-  return circleStyle
+  markerStyle = {icon: icon}
+  return markerStyle  
 }
 
 function burnAreaStyler(fire) {
   var burnAreaStyle = {
-    radius: Math.sqrt(((fire.size*.00156)/Math.PI))*700,
+    radius: Math.sqrt(((fire.acres*.00156)/Math.PI))*700,
     color: "orange",
     fillColor: "orange"
   }
   return burnAreaStyle
 }
 
-L.control.scale().addTo(myMap);
-var markerLayer = L.layerGroup(markers)
+function markerSorter(fire,marker) {
+  switch(fire.cause) {
+    case "Burned Area Emergency Response":
+      responseMarkers.push(marker);
+      break;
+    case "Human":
+      humanMarkers.push(marker);
+      break;
+    case "Lightning":
+      lightningMarkers.push(marker);
+      break;
+    case "Prescribed Fire":
+      prescribedMarkers.push(marker);
+      break
+    case "Unknown":
+      unknownMarkers.push(marker);
+      break;
+    default:
+      otherMarkers.push(marker)
+  }
+  markers.push(marker)
+}
 
-// var circleClick = d3.selectAll("path").on("click", function() {
-//   console.log("doing")
-//   var latlon = this.d.point.split(',')
-//   var lat = latlon[0]
-//   var lon = latlon[1]
-//   var zoom = 10
 
-//   myMap.panTo(latlon,zoom)
-// })
+// Function to create the map legend
+function buildLegend(mapObject) {
+  // create legend object
+  var markerLegend = L.control({ position: "bottomright" });
+  // add legend content
+  
+  markerLegend.onAdd = function() {
+    // create div to hold legend
+    var div = L.DomUtil.create("div", "info legend");
+    // create list of legend labels
+    var causes = ["Burned Area Emergency Response","Human","Lightning","Prescribed","Unknown","other"];
+    // create list of marker names
+    var markerNames = ["pink","red","yellow","green","blue","gray"]
+    // create legend html content
+    var legendInfo = `<h4>Fire Cause</h4><hr>\
+                      <ul>\
+                        <li><img src="static/images/${markerNames[0]}.png" width=30 height=30>${causes[0]}</li>\
+                        <li><img src="static/images/${markerNames[1]}.png" width=30 height=30>${causes[1]}</li>\
+                        <li><img src="static/images/${markerNames[2]}.png" width=30 height=30>${causes[2]}</li>\
+                        <li><img src="static/images/${markerNames[3]}.png" width=30 height=30>${causes[3]}</li>\
+                        <li><img src="static/images/${markerNames[4]}.png" width=30 height=30>${causes[4]}</li>\
+                        <li><img src="static/images/${markerNames[5]}.png" width=30 height=30>${causes[5]}</li>\
+                      </ul>`
 
-// var circleGroup = d3.selectAll(".leaflet-marker-icon")
-// markerLayer.on("click", function() {
-//   console.log("hello")
-// })
+    // add completed html code to the legend object
+    div.innerHTML = legendInfo;
+
+    return div;
+  };
+  // add legend to the map
+  markerLegend.addTo(mapObject);
+
+  myMap.on('overlayremove', function (eventLayer) {
+    // Switch to the Population legend...
+    if (eventLayer.name === 'Fires') {
+        this.removeControl(markerLegend);
+    }
+  });
+  myMap.on('overlayadd', function (eventLayer) {
+    // Switch to the Population legend...
+    if (eventLayer.name === 'Fires') {
+        this.addControl(markerLegend);
+    }
+  });
+}
+
+
+
+// // create marker layer
+// var markerLayer = L.layerGroup(markers);
+// var responseLayer = L.layerGroup(responseMarkers);
+// var humanLayer = L.layerGroup(humanMarkers)
+
+// var baseMaps = {
+//   Satellite: satelliteMap,
+//   Outdoors: outdoorMap
+// }
+// var overlays = {
+//   Fires: markerLayer
+// };
+
+// // create tile/overlay controls
+// L.control.layers(baseMaps,overlays, {collapsed: false}).addTo(myMap);
+// run legend builder funciton
 
