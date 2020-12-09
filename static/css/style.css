@@ -17,6 +17,7 @@ body {
 
   html { 
     background-image: url("../images/wildfire.jpg"); 
+    background-repeat: no-repeat;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -61,7 +62,6 @@ body h1 {
     margin: 0;
     margin-bottom: 10px;
     text-shadow: black 2px 2px 3px;
-
  }
  
 
@@ -119,7 +119,18 @@ body h1 {
 .legend hr {
     margin: 0;
 }
- 
+
+.leaflet-popup-content a {
+    font-size: 14px;
+    color: blue;
+    text-align: left;
+    padding: 5px;
+    padding-left: 0px;
+    margin: 0;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    text-shadow:none;
+}
   
 /*<html lang="en-us">
 <head>

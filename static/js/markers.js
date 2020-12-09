@@ -1,4 +1,3 @@
-console.log("Running markers script")
 // define colored icon objects
 var greenIcon = L.icon({
   iconUrl: 'static/images/green.png',
@@ -78,11 +77,8 @@ var prescribedMarkers = [];
 var unknownMarkers = [];
 var otherMarkers= [];
 
-console.log("still running")
-
 // get data from api
 d3.json(link, response => {
-  console.log("running d3 json")
   console.log(response)
   
   createMarkerMap(response)
@@ -98,13 +94,12 @@ d3.json(link, response => {
 });
 
 function createMarkerMap(response) {
-  console.log("running create markermap")
   for (i=0;i<response.length;i++) {
     // define row data
     fire = response[i]
     if (fire.acres === "n/a") {
       var marker = L.marker([fire.lat,fire.lon], markerStyler(fire))//.addTo(myMap);
-      marker.bindPopup(`${fire.title}<hr>${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      marker.bindPopup(`<strong>${fire.title}</strong><hr>${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
       marker.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
       marker.on("click", function() {myMap.setView([39,-110],5)})
       markerSorter(fire,marker);
@@ -112,8 +107,8 @@ function createMarkerMap(response) {
       fire.acres = +fire.acres      
       var marker = L.marker([fire.lat,fire.lon], markerStyler(fire))//.addTo(myMap)
       var burnArea = L.circle([fire.lat,fire.lon], burnAreaStyler(fire))//.addTo(myMap)
-      marker.bindPopup(`${fire.title}<hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
-      burnArea.bindPopup(`${fire.title}<hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      marker.bindPopup(`<strong>${fire.title}</strong><hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
+      burnArea.bindPopup(`<strong>${fire.title}</strong><hr>Size: ${fire.acres} acres<br>Cause: ${fire.cause}<br><a href="${fire.link_url}">Click for details</a>`)
       marker.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
       burnArea.on("click", function() {myMap.setView([this._latlng.lat, this._latlng.lng],9)})
       marker.on("click", function() {myMap.setView([39,-110],5)})
@@ -129,20 +124,29 @@ function createControls() {
   var markerLayer = L.layerGroup(markers);
   var responseLayer = L.layerGroup(responseMarkers);
   var humanLayer = L.layerGroup(humanMarkers);
-
+  var lightningLayer = L.layerGroup(lightningMarkers);
+  var prescribedLayer = L.layerGroup(prescribedMarkers);
+  var unknownLayer = L.layerGroup(unknownMarkers);
+  var otherLayer = L.layerGroup(otherMarkers);
 
   var baseMaps = {
     Satellite: satelliteMap,
     Outdoors: outdoorMap
   }
   var overlays = {
-    Fires: markerLayer
+    // Fires: markerLayer
+    "Emergency Response": responseLayer,
+    "Prescribed": prescribedLayer,
+    "Cause: Human": humanLayer,
+    "Cause: Lightning": lightningLayer,
+    "Cause: Unknown": unknownLayer,
+    "Cause: Other": otherLayer
   };
 
   myMap = L.map("map", {
     center: [39, -110],
     zoom: 5,
-    layers: [satelliteMap,markerLayer]
+    layers: [satelliteMap,responseLayer,prescribedLayer,humanLayer,lightningLayer,unknownLayer,otherLayer]
   });
 
   // create tile/overlay controls
@@ -225,12 +229,12 @@ function buildLegend(mapObject) {
     // create legend html content
     var legendInfo = `<h3>Fire Cause</h3><hr>\
                       <ul>\
-                        <li><img src="static/images/${markerNames[0]}.png" width=30 height=30>${causes[0]}</li>\
-                        <li><img src="static/images/${markerNames[1]}.png" width=30 height=30>${causes[1]}</li>\
-                        <li><img src="static/images/${markerNames[2]}.png" width=30 height=30>${causes[2]}</li>\
-                        <li><img src="static/images/${markerNames[3]}.png" width=30 height=30>${causes[3]}</li>\
-                        <li><img src="static/images/${markerNames[4]}.png" width=30 height=30>${causes[4]}</li>\
-                        <li><img src="static/images/${markerNames[5]}.png" width=30 height=30>${causes[5]}</li>\
+                        <li><img id="response" src="static/images/${markerNames[0]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[0]}</li>\
+                        <li><img id="human" src="static/images/${markerNames[1]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[1]}</li>\
+                        <li><img id="lightning" src="static/images/${markerNames[2]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[2]}</li>\
+                        <li><img id="prescribed" src="static/images/${markerNames[3]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[3]}</li>\
+                        <li><img id="unknown" src="static/images/${markerNames[4]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[4]}</li>\
+                        <li><img id="other" src="static/images/${markerNames[5]}.png" style="width:30px;height:30px;opacity:1.0;">${causes[5]}</li>\
                       </ul>`
 
     // add completed html code to the legend object
@@ -241,18 +245,49 @@ function buildLegend(mapObject) {
   // add legend to the map
   markerLegend.addTo(mapObject);
 
-  myMap.on('overlayremove', function (eventLayer) {
-    // Switch to the Population legend...
-    if (eventLayer.name === 'Fires') {
-        this.removeControl(markerLegend);
+  // on toggling of layers, dim legend icon accordingly
+  myMap.on("overlayremove", eventLayer => {
+    switch (eventLayer.name) {
+      case "Emergency Response":
+        d3.select("#response").attr("style","width:30px;height:30px;opacity:.3;");
+        break;
+      case "Prescribed":
+        d3.select("#prescribed").attr("style","width:30px;height:30px;opacity:.3;");
+        break;
+      case "Cause: Human":
+        d3.select("#human").attr("style","width:30px;height:30px;opacity:.3;");
+        break; 
+      case "Cause: Lightning":
+        d3.select("#lightning").attr("style","width:30px;height:30px;opacity:.3;");
+        break;
+      case "Cause: Unknown":
+        d3.select("#unknown").attr("style","width:30px;height:30px;opacity:.3;");
+        break;
+      case "Cause: Other":
+        d3.select("#other").attr("style","width:30px;height:30px;opacity:.3;");
+        break;
     }
-  });
-  myMap.on('overlayadd', function (eventLayer) {
-    // Switch to the Population legend...
-    if (eventLayer.name === 'Fires') {
-        this.addControl(markerLegend);
+  })
+  myMap.on("overlayadd", eventLayer => {
+    switch (eventLayer.name) {
+      case "Emergency Response":
+        d3.select("#response").attr("style","width:30px;height:30px;opacity:1.0;");
+        break;
+      case "Prescribed":
+        d3.select("#prescribed").attr("style","width:30px;height:30px;opacity:1.0;");
+        break;
+      case "Cause: Human":
+        d3.select("#human").attr("style","width:30px;height:30px;opacity:1.0;");
+        break; 
+      case "Cause: Lightning":
+        d3.select("#lightning").attr("style","width:30px;height:30px;opacity:1.0;");
+        break;
+      case "Cause: Unknown":
+        d3.select("#unknown").attr("style","width:30px;height:30px;opacity:1.0;");
+        break;
+      case "Cause: Other":
+        d3.select("#other").attr("style","width:30px;height:30px;opacity:1.0;");
+        break;
     }
-  });
+  })
 }
-
-console.log("still running")
