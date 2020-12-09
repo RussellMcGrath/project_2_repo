@@ -27,6 +27,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+
+
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 
 # reflect an existing database into a new model
@@ -61,7 +63,7 @@ def choropleth():
 def fires():
     # Query data from Fires table in db
     results = db.session.query(Fires.title, Fires.published, Fires.lat, Fires.lon,
-                            Fires.link_url, Fires.description, Fires.cause, Fires.acres).all()
+                            Fires.link_url, Fires.description, Fires.cause, Fires.acres, Fires.state).all()
     
     # put data into dictionary format that can be jsonified
     fire_data = []
