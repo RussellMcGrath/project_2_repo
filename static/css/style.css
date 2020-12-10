@@ -131,7 +131,21 @@ body h1 {
     margin-bottom: 20px;
     text-shadow:none;
 }
-  
+
+/*CHOROPLETH STYLE*/
+.info {
+  padding: 6px 8px;
+  font: 14px/16px Arial, Helvetica, sans-serif;
+  background: rgb(106, 212, 141);
+  box-shadow: 0 0 15px rgba(148, 25, 25, 0.2);
+  border-radius: 5px;
+}
+.info h4 {
+  margin: 0 0 5px;
+  color: rgb(10, 5, 5);
+}
+
+
 /*<html lang="en-us">
 <head>
   <meta charset="UTF-8">

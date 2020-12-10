@@ -76,7 +76,8 @@ def fires():
             "link_url":result[4],
             "description":result[5],
             "cause":result[6],
-            "acres":result[7]})
+            "acres":result[7],
+            "state":result[8]})
     
     # display jsonified data on the dom
     return jsonify(fire_data)
