@@ -15,14 +15,16 @@ body {
     height: 100%;
   }
 
-  html { 
-    background-image: url("../images/wildfire.jpg"); 
-    background-repeat: no-repeat;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-  }
+.content {
+    margin-bottom: -600px;
+    position: relative;
+    z-index: 1;
+}
+
+canvas {
+    position: relative;
+    z-index: -1;
+}
   
 body h1 {
     padding: 5px;
@@ -34,15 +36,15 @@ body h1 {
     text-shadow: black 2px 2px 3px;
   }
   
-  body h2 {
-    font-size: 24px;
-    color: #eee;
-    text-align: center;
-    padding: 5px;
-    margin: 0;
-    margin-bottom: 10px;
-    text-shadow: black 2px 2px 3px;
-  }
+body h2 {
+  font-size: 24px;
+  color: #eee;
+  text-align: center;
+  padding: 5px;
+  margin: 0;
+  margin-bottom: 10px;
+  text-shadow: black 2px 2px 3px;
+}
 
   section {
     font-size: 22px;
@@ -51,20 +53,26 @@ body h1 {
     padding: 5px;
     margin: 0;
     margin-bottom: 10px;
-    text-shadow: black 2px 2px 3px;
-  
+    text-shadow: black 2px 2px 3px;  
  }
- .map-link a {
+
+.map-desc {
+  margin: 0px;
+}
+ .map-link {
     font-size: 22px;
-    color: white;
+    color: white !important;
     text-align: center;
     padding: 5px;
     margin: 0;
     margin-bottom: 10px;
-    text-shadow: black 2px 2px 3px;
+    text-shadow: black 2px 2px 3px;    
  }
- 
 
+ .map-link:visited{
+  color:white;
+}
+ 
   /* Selecting elements by class */
   .container {
     width: 1024px;

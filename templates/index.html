@@ -8,30 +8,49 @@
 
 
 <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
 
-<header>
-    <h1> Wildfires in the U.S.A.  </h1>
-</header>
+    <div class="content">
+        <header>
+            <h1> Wildfires in the U.S.A.  </h1>
+        </header>
 
-  
-<main class="container">
+    <main class="container">
 
-    <section id="desc"> 
-    <h2> Description </h2>
-    </section>
-<section id="info">
+        <section id="desc"> 
+            <h2> Description </h2>
+        </section>
     
- <p> This website hosts an up to date collection of interactive maps that show all the current active wildfires in the US as of 12/9/2020. 
-     The map can be filtered to show the location of the fires, the weather conditions in the area of the fires and ...... Fire locations are indicated by markers. Click on a marker to zoom into the map and see specific details about the wildfire like size, cause and type. </p>
- </section> 
+    <section id="info">
+        
+        <p> This website hosts an up to date collection of interactive maps that show all the current active wildfires in the US as 
+            of 12/9/2020, based on data from the National Wildfire Coordinating Group.
+        </p>
+        
+    </section> 
 
-<section id="pg2">
-   
-<center> <a class="map-link" href="/markermap"> Go to Marker map </a> </center>
-<center> <a class="map-link" href="/heatmap"> Go to Heatmap </a> </center>
-<center> <a class="map-link" href="/choropleth"> Go to Choropleth Map </a> </center>
-</section>
+    <section id="pg2">
+        <p class="map-desc">
+            MARKER MAP<br>
+            This map places markers at the locations of all currently active wildfires, with additional details. 
+            <center> <a class="map-link" href="/markermap"> Go to Marker map </a> </center>
+        </p>
 
-</main>
+        <p class="map-desc">
+            HEATMAP<br>
+            This map illustrates the areas of higher fire concentration.
+            <center> <a class="map-link" href="/heatmap"> Go to Heatmap </a> </center>
+        </p>
+
+        <p class="map-desc">
+            CHOROPLETH MAP<br>
+            This map illustrates how each state compares in total acreage currently burning.
+            <center> <a class="map-link" href="/choropleth"> Go to Choropleth Map </a> </center>
+        </p>
+    </section>
+
+    </main>
+    </div>
+    <script type="text/javascript" src="static/js/pixi.js"></script>
 </body>
 
